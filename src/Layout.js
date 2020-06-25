@@ -1,5 +1,4 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import {
   Switch,
   Route,
@@ -7,32 +6,35 @@ import {
   Redirect,
   useLocation,
 } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { makeStyles } from '@material-ui/core/styles';
 import TabPanel from './TabPanel';
+import ListBooks from './ListBooks';
 
 const TO_READ = 0;
 const IN_PROGRESS = 1;
 const DONE = 2;
 
-const mapStateToProps = (state) => ({
-  listBooks: state.listBooks,
-});
-
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
-    flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
+    minWidth: '480px',
+    maxWidth: '1280px',
+    padding: '10px 50px',
   },
 }));
 
-function Layout(props) {
-  const { listBooks } = props;
+function Layout() {
+  const listBooks = useSelector((state) => state.listBooks);
   const classes = useStyles();
   const { pathname } = useLocation();
   let value;
+
+  const listBooksToRead = listBooks.filter((item) => !item.status || item.status === TO_READ);
+  const listBooksInProgress = listBooks.filter((item) => item.status && item.status === IN_PROGRESS);
+  const listBooksDone = listBooks.filter((item) => item.status && item.status === DONE);
 
   function a11yProps(index) {
     return {
@@ -64,27 +66,27 @@ function Layout(props) {
 
   return (
     <div className={classes.root}>
-      <AppBar position="static">
-        <Tabs value={value} aria-label="simple tabs example">
-          <Link to="/toRead"><Tab label="To read" {...a11yProps(TO_READ)} /></Link>
-          <Link to="/inProgress"><Tab label="In progress" {...a11yProps(IN_PROGRESS)} /></Link>
-          <Link to="/done"><Tab label="Done" {...a11yProps(DONE)} /></Link>
+      <AppBar position="static" color="transparent">
+        <Tabs value={value} indicatorColor="primary" textColor="primary">
+          <Link to="/toRead" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`To read (${1})`} {...a11yProps(TO_READ)} /></Link>
+          <Link to="/inProgress" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`In progress (${1})`} {...a11yProps(IN_PROGRESS)} /></Link>
+          <Link to="/done" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`Done (${1})`} {...a11yProps(DONE)} /></Link>
         </Tabs>
       </AppBar>
       <Switch>
         <Route path="/toRead">
           <TabPanel index={TO_READ}>
-            ghgfh 1
+            <ListBooks listBooks={listBooksToRead} nextStatus={IN_PROGRESS} />
           </TabPanel>
         </Route>
         <Route path="/inProgress">
           <TabPanel index={IN_PROGRESS}>
-            klok;o 2
+            <ListBooks listBooks={listBooksInProgress} nextStatus={DONE} />
           </TabPanel>
         </Route>
         <Route path="/done">
           <TabPanel index={DONE}>
-            qwqwqw 3
+            <ListBooks listBooks={listBooksDone} nextStatus={TO_READ} />
           </TabPanel>
         </Route>
         <Redirect from="/" to="/toRead" />
@@ -93,4 +95,4 @@ function Layout(props) {
   );
 }
 
-export default connect(mapStateToProps)(Layout);
+export default Layout;
