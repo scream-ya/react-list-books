@@ -12,11 +12,8 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { makeStyles } from '@material-ui/core/styles';
 import TabPanel from './TabPanel';
-import ListBooks from './ListBooks';
-
-const TO_READ = 0;
-const IN_PROGRESS = 1;
-const DONE = 2;
+import BooksList from './BooksList';
+import { TO_READ, IN_PROGRESS, DONE } from './constants';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -24,17 +21,20 @@ const useStyles = makeStyles(() => ({
     maxWidth: '1280px',
     padding: '10px 50px',
   },
+  href: {
+    textDecoration: 'none',
+    color: 'black',
+  },
 }));
 
 function Layout() {
   const listBooks = useSelector((state) => state.listBooks);
   const classes = useStyles();
   const { pathname } = useLocation();
-  let value;
 
-  const listBooksToRead = listBooks.filter((item) => !item.status || item.status === TO_READ);
-  const listBooksInProgress = listBooks.filter((item) => item.status && item.status === IN_PROGRESS);
-  const listBooksDone = listBooks.filter((item) => item.status && item.status === DONE);
+  const booksToRead = listBooks.filter((item) => (!item.status || item.status === TO_READ));
+  const booksInProgress = listBooks.filter((item) => (item.status === IN_PROGRESS));
+  const booksDone = listBooks.filter((item) => (item.status === DONE));
 
   function a11yProps(index) {
     return {
@@ -43,50 +43,55 @@ function Layout() {
     };
   }
 
-  switch (pathname) {
-    case '/toRead': {
-      value = TO_READ;
-      break;
-    }
+  function getActiveTab() {
+    switch (pathname) {
+      case '/toRead': {
+        return TO_READ;
+      }
 
-    case '/inProgress': {
-      value = IN_PROGRESS;
-      break;
-    }
+      case '/inProgress': {
+        return IN_PROGRESS;
+      }
 
-    case '/done': {
-      value = DONE;
-      break;
-    }
+      case '/done': {
+        return DONE;
+      }
 
-    default: {
-      value = TO_READ;
+      default: {
+        return TO_READ;
+      }
     }
   }
 
   return (
     <div className={classes.root}>
       <AppBar position="static" color="transparent">
-        <Tabs value={value} indicatorColor="primary" textColor="primary">
-          <Link to="/toRead" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`To read (${1})`} {...a11yProps(TO_READ)} /></Link>
-          <Link to="/inProgress" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`In progress (${1})`} {...a11yProps(IN_PROGRESS)} /></Link>
-          <Link to="/done" style={{ textDecoration: 'none', color: 'black' }}><Tab label={`Done (${1})`} {...a11yProps(DONE)} /></Link>
+        <Tabs value={getActiveTab()} indicatorColor="primary" textColor="primary">
+          <Link to="/toRead" className={classes.href}>
+            <Tab label={`To read (${booksToRead.length})`} {...a11yProps(TO_READ)} />
+          </Link>
+          <Link to="/inProgress" className={classes.href}>
+            <Tab label={`In progress (${booksInProgress.length})`} {...a11yProps(IN_PROGRESS)} />
+          </Link>
+          <Link to="/done" className={classes.href}>
+            <Tab label={`Done (${booksDone.length})`} {...a11yProps(DONE)} />
+          </Link>
         </Tabs>
       </AppBar>
       <Switch>
         <Route path="/toRead">
           <TabPanel index={TO_READ}>
-            <ListBooks listBooks={listBooksToRead} nextStatus={IN_PROGRESS} />
+            <BooksList listBooks={booksToRead} nextStatus={IN_PROGRESS} />
           </TabPanel>
         </Route>
         <Route path="/inProgress">
           <TabPanel index={IN_PROGRESS}>
-            <ListBooks listBooks={listBooksInProgress} nextStatus={DONE} />
+            <BooksList listBooks={booksInProgress} nextStatus={DONE} />
           </TabPanel>
         </Route>
         <Route path="/done">
           <TabPanel index={DONE}>
-            <ListBooks listBooks={listBooksDone} nextStatus={TO_READ} />
+            <BooksList listBooks={booksDone} nextStatus={TO_READ} />
           </TabPanel>
         </Route>
         <Redirect from="/" to="/toRead" />
