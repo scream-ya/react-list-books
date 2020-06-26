@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
 import BookItem from './BookItem';
 import TagsFilter from './TagsFilter';
+import EmptyList from './EmptyList';
 
 const propTypes = {
   listBooks: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -37,11 +38,7 @@ function BooksList(props) {
     );
   }
 
-  return (
-    <div align="center">
-      <b>List is empty</b>
-    </div>
-  );
+  return (<EmptyList />);
 }
 
 BooksList.propTypes = propTypes;
